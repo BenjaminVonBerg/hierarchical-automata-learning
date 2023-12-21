@@ -6,7 +6,7 @@ This repository provides an implementation of the algorithm described in the pap
 
 The code in this repository has been requires python version 3.10 or greater. Requirements are listed in `requirements.txt` and can be installed using
 ```sh
-pip install -r requirements
+pip install -r requirements.txt
 ```
 
 The main file is `HierarchicMDP.py`. An example of how our algorithm can be used to learn a simple MDP is given in `Example.py`.
