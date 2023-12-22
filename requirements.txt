@@ -1,1 +1,1 @@
-aalpy
+aalpy==1.3.1
