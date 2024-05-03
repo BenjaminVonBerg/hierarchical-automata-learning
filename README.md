@@ -11,6 +11,14 @@ pip install -r requirements.txt
 
 The main file is `HierarchicMDP.py`. An example of how our algorithm can be used to learn a simple MDP is given in `Example.py`.
 
+## Evaluation
+
+The approach was evaluated using the code in the `evaluate` folder. Assuming a fresh python environment, it can be run by executing
+```sh
+pip install -r requirements-evaluation.txt
+python Evaluation.py
+```
+
 ## Acknowledgements
 
 This repository internally uses the [AALpy](https://github.com/DES-Lab/AALpy) automata learning library.
