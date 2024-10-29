@@ -43,18 +43,29 @@ def segment_rising_falling(trace : Trace) -> SegmentedTrace:
   f_sym = "falling"
 
   start_idx = 0
-  for idx in range(1, len(trace) - 1):
-    v_p, v_c, v_n = o_trace[idx-1:idx+2]
-    falling = v_c < v_p and v_c < v_n
-    rising = v_p < v_c and v_n < v_c
-    if falling or rising:
-      label = r_sym if rising else f_sym
-      segment = [o_trace[start_idx]] + trace[start_idx+1:idx+1]
-      segments.append(LabeledSegment(label, segment))
-      start_idx = idx
-  label = r_sym if o_trace[start_idx] < o_trace[-1] else f_sym
+  current_mode = None
+  for idx in range(1, len(trace)):
+    v_p, v_c = o_trace[idx-1:idx+1]
+    next_mode = None
+    if v_p > v_c:
+      next_mode = f_sym
+    if v_p < v_c:
+      next_mode = r_sym
+
+    if next_mode is None or current_mode == next_mode:
+      continue
+    if current_mode is None:
+      current_mode = next_mode
+      continue
+
+    segment = [o_trace[start_idx]] + trace[start_idx+1:idx+1]
+    segments.append(LabeledSegment(current_mode, segment))
+    start_idx = idx
+    current_mode = next_mode
+  if current_mode is None:
+    current_mode = r_sym
   segment = [o_trace[start_idx]] + trace[start_idx+1:]
-  segments.append(LabeledSegment(label, segment))
+  segments.append(LabeledSegment(current_mode, segment))
 
   return segments
 
@@ -68,7 +79,8 @@ samples = get_samples(mdp, 100, 0.1)
 
 # learn models
 model_baseline = learning_alg(samples)
-model_ours = HierarchicMDP.learn_with_function(samples, segment_rising_falling, learning_alg).to_MDP()
+hmdp = HierarchicMDP.learn_with_function(samples, segment_rising_falling, learning_alg)
+model_ours = hmdp.to_MDP()
 
 # visualization
 os.makedirs("output", exist_ok=True)
