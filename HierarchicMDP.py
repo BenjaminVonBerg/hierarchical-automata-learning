@@ -16,6 +16,9 @@ class OutputPair:
   symbol : Output
   next : SegmentLabel
 
+  def __lt__(self, other):
+    return [self.symbol, self.next or ""] < [other.symbol, other.next or ""]
+
 @dataclass
 class LabeledSegment:
   label : SegmentLabel
