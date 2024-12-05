@@ -157,23 +157,29 @@ class HierarchicMDP:
       state.output = state.output.symbol
       state.state_id = name + "_" + state_id
 
-    # create initial state
-    initial_state = MdpState("init", self.initial_output)
-    initial_transitions = initial_state.transitions
-    for (name, output), initial_prob in self.initial_prob.items():
-      state = state_dict[(name, self.mdps[name].initial_state.transitions[output][0][0].state_id)]
-      for in_sym, sub_transitions in state.transitions.items():
-        scaled_transitions = [(state, initial_prob * prob) for state, prob in sub_transitions]
-        initial_transitions[in_sym].extend(scaled_transitions)
-    for transitions in initial_transitions.values():
-      # renormalization is necessary if the initial state of a sub model is not input complete.
-      total_prob = sum(prob for _, prob in transitions)
-      for idx, (child, prob) in enumerate(transitions):
-        transitions[idx] = (child, prob / total_prob)
+    # create initial state & state list
+    if len(self.initial_prob) == 1:
+      # unique initial mode. can just use the entry state with the systems initial output as initial state for the whole system
+      (name, output) = list(self.initial_prob.keys())[0]
+      initial_state = state_dict[(name, self.mdps[name].initial_state.transitions[output][0][0].state_id)]
+      states = []
+    else:
+      # initial mode is ambiguous. create new initial state that mimics the behavior of each of the modes entry state with
+      # the systems initial state according to the observed probability of this mode being the initial mode.
+      initial_state = MdpState("init", self.initial_output)
+      states = [initial_state]
+      initial_transitions = initial_state.transitions
+      for (name, output), initial_prob in self.initial_prob.items():
+        state = state_dict[(name, self.mdps[name].initial_state.transitions[output][0][0].state_id)]
+        for in_sym, sub_transitions in state.transitions.items():
+          scaled_transitions = [(state, initial_prob * prob) for state, prob in sub_transitions]
+          initial_transitions[in_sym].extend(scaled_transitions)
+      for transitions in initial_transitions.values():
+        # renormalization is necessary if the initial state of a sub model is not input complete.
+        total_prob = sum(prob for _, prob in transitions)
+        for idx, (child, prob) in enumerate(transitions):
+          transitions[idx] = (child, prob / total_prob)
 
-
-    # create state list
-    states = [initial_state]
     states.extend(state_dict.values())
 
     # post processing
